@@ -3,7 +3,6 @@ import helper.IoHelper;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.function.Function;
 
 /**
  * сумма всех операций за каждый день; суммы всех операций в каждой точке
@@ -12,6 +11,24 @@ import java.util.function.Function;
  */
 class FileParser {
     private final DecimalFormat format = new DecimalFormat("#0.00");
+    private String dateStatistics;
+    private String officeStatistics;
+
+    public String getDateStatistics() {
+        return dateStatistics;
+    }
+
+    public void setDateStatistics(String dateStatistics) {
+        this.dateStatistics = dateStatistics;
+    }
+
+    public String getOfficeStatistics() {
+        return officeStatistics;
+    }
+
+    public void setOfficeStatistics(String officeStatistics) {
+        this.officeStatistics = officeStatistics;
+    }
 
     /**
      * @param input имя файла с операциями
@@ -21,58 +38,39 @@ class FileParser {
     public void parse(String input, String out1, String out2) {
 
         String[] unorderedData = IoHelper.readFile(input);
-
-        String dateStatistics = sortByDate(unorderedData);
-        IoHelper.writeData(out1.trim(), dateStatistics);
-
-        String officeStatistics = sortByMoney(unorderedData);
-        IoHelper.writeData(out2.trim(), officeStatistics);
+        updateStatistics(unorderedData);
+        IoHelper.writeData(out1.trim(), getDateStatistics());
+        IoHelper.writeData(out2.trim(), getOfficeStatistics());
     }
 
-    private String sortByDate(String[] unorderedData) {
-
-        TreeMap<LocalDate, Double> sortedData = new TreeMap<>();
-
-        for (String anUnorderedData : unorderedData) {
-            String[] line = anUnorderedData.split("__");
-            LocalDate date = LocalDate.parse(line[0].trim());
-            Double price = Double.valueOf(line[3].trim().replace(',', '.'));
-            if (sortedData.containsKey(date)) {
-                sortedData.put(date, sortedData.get(date) + price);
-            } else {
-                sortedData.put(date, price);
-            }
-        }
-        StringBuilder result = new StringBuilder();
-        sortedData.forEach((key, value) -> result.append(key)
-                .append("__")
-                .append(format.format(value))
-                .append(System.lineSeparator()));
-        return result.toString();
-    }
-
-    private String sortByMoney(String[] unorderedData) {
-
+    private void updateStatistics(String[] unorderedData) {
+        TreeMap<LocalDate, Double> sortedDate = new TreeMap<>();
         HashMap<String, Double> unsortedOfficeStatistics = new HashMap<>();
 
         for (String anUnorderedData : unorderedData) {
             String[] line = anUnorderedData.split("__");
+            LocalDate date = LocalDate.parse(line[0].trim());
             String office = line[1].trim();
             Double price = Double.valueOf(line[3].trim().replace(',', '.'));
-            if (unsortedOfficeStatistics.containsKey(office)) {
-                unsortedOfficeStatistics.put(office, unsortedOfficeStatistics.get(office) + price);
-            } else {
-                unsortedOfficeStatistics.put(office, price);
-            }
+            sortedDate.merge(date, price, (val, newVal) -> val + newVal);
+            unsortedOfficeStatistics.merge(office, price, (val, newVal) -> val + newVal);
         }
+
+        StringBuilder dateResult = new StringBuilder();
+        sortedDate.forEach((key, value) -> dateResult.append(key)
+                .append("__")
+                .append(format.format(value))
+                .append(System.lineSeparator()));
+        setDateStatistics(dateResult.toString());
+
         List<Map.Entry<String, Double>> list = new ArrayList<>(unsortedOfficeStatistics.entrySet());
         list.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
-        StringBuilder result = new StringBuilder();
-        list.forEach(entry -> result.append(entry.getKey())
+
+        StringBuilder officeResult = new StringBuilder();
+        list.forEach(entry -> officeResult.append(entry.getKey())
                 .append("__")
                 .append(format.format(entry.getValue()))
                 .append(System.lineSeparator()));
-        return result.toString();
+        setOfficeStatistics(officeResult.toString());
     }
-
 }
