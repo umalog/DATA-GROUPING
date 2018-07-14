@@ -1,8 +1,9 @@
-plugins {
-    id 'java'
-}
 
-//group 'ru.clubbreakfast'
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = 'Runner'
+
 group 'com.gpb.example'
 version '1.0-SNAPSHOT'
 
@@ -15,4 +16,22 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile group: 'log4j', name: 'log4j', version: '1.2.16'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.11'
+}
+sourceSets {
+    main.java.srcDir "src/main/java"
+    main.resources.srcDir "src/main/resources"
+}
+
+jar {
+    manifest {
+        attributes(
+                "Class-Path": configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'Runner'
+        )
+    }
+    from configurations.compile.collect { entry -> zipTree(entry) }
 }
