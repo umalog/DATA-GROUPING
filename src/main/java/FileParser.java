@@ -1,4 +1,5 @@
 import helper.IoHelper;
+import org.apache.log4j.Logger;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -10,6 +11,7 @@ import java.util.*;
  * java -jar task2.jar operations.txt sums-by-date.txt sums-by-offices.txt
  */
 class FileParser {
+    private static final Logger LOGGER = Logger.getLogger(FileParser.class);
     private final DecimalFormat format = new DecimalFormat("#0.00");
     private String dateStatistics;
     private String officeStatistics;
@@ -49,28 +51,39 @@ class FileParser {
 
         for (String anUnorderedData : unorderedData) {
             String[] line = anUnorderedData.split("__");
-            LocalDate date = LocalDate.parse(line[0].trim());
-            String office = line[1].trim();
-            Double price = Double.valueOf(line[3].trim().replace(',', '.'));
-            sortedDate.merge(date, price, (val, newVal) -> val + newVal);
-            unsortedOfficeStatistics.merge(office, price, (val, newVal) -> val + newVal);
+            String d = line[0].trim();
+            try {
+                Double price = Double.valueOf(line[3].trim().replace(',', '.'));
+                LocalDate date = LocalDate.parse(d.substring(0, d.indexOf(" ")));
+                sortedDate.merge(date, price, (val, newVal) -> val + newVal);
+                unsortedOfficeStatistics.merge(line[1].trim(), price, (val, newVal) -> val + newVal);
+            } catch (NumberFormatException e) {
+                LOGGER.error("Некорректное значение суммы: " + line[3] + ". Строка \"" + anUnorderedData + "\" не будет обработана");
+            } catch (RuntimeException e) {
+                LOGGER.error("Некорректное значение даты: " + d + ". Строка \"" + anUnorderedData + "\" не будет обработана");
+            }
         }
+        setDateStatistics(collectDateStatistics(sortedDate));
+        setOfficeStatistics(collectOfficeStatistics(unsortedOfficeStatistics));
+    }
 
+    private String collectDateStatistics(TreeMap<LocalDate, Double> sortedDate) {
         StringBuilder dateResult = new StringBuilder();
         sortedDate.forEach((key, value) -> dateResult.append(key)
                 .append("__")
                 .append(format.format(value))
                 .append(System.lineSeparator()));
-        setDateStatistics(dateResult.toString());
+        return dateResult.toString();
+    }
 
+    private String collectOfficeStatistics(HashMap<String, Double> unsortedOfficeStatistics) {
         List<Map.Entry<String, Double>> list = new ArrayList<>(unsortedOfficeStatistics.entrySet());
         list.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
-
         StringBuilder officeResult = new StringBuilder();
         list.forEach(entry -> officeResult.append(entry.getKey())
                 .append("__")
                 .append(format.format(entry.getValue()))
                 .append(System.lineSeparator()));
-        setOfficeStatistics(officeResult.toString());
+        return officeResult.toString();
     }
 }
