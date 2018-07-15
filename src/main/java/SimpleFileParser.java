@@ -28,11 +28,7 @@ class SimpleFileParser implements FileParser {
         this.officeStatistics = officeStatistics;
     }
 
-    /**
-     * @param input имя файла с операциями
-     * @param out1  имя файла со статистикой по датам / сортировка по возрастанию дат!
-     * @param out2  имя файла со статистикой по точкам продаж / сортировка по убывадию суммы!
-     */
+    @Override
     public void parse(String input, String out1, String out2) {
 
         String[] unorderedData = IoHelper.readFile(input);
