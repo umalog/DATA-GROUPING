@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 public class IoHelper {
     private static final Logger LOGGER = Logger.getLogger(IoHelper.class);
@@ -36,7 +37,7 @@ public class IoHelper {
         }
     }
 
-    public static boolean validateArgs(String[] args){
+    public static boolean validateArgs(String[] args) {
         if (args.length == 0) {
             LOGGER.error("Запуск без аргументов не возможен!");
             return false;
@@ -45,5 +46,14 @@ public class IoHelper {
             return false;
         }
         return true;
+    }
+
+    public static Stream<String> getStreamOfFile(String path) {
+        try {
+            return Files.lines(Paths.get(path));
+        } catch (IOException e) {
+            LOGGER.error("Неудачная попытка чтения файла: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 }
