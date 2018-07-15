@@ -12,7 +12,7 @@ public class Runner {
      */
     public static void main(String[] args) {
         if (IoHelper.validateArgs(args)) {
-            FileParser parser = new SimpleFileParser();
+            FileParser parser = new ParallelFileParser();
             parser.parse(args[0], args[1], args[2]);
         } else {
             throw new IllegalArgumentException("Неверное количество передаваемых параметров. \n" +
