@@ -7,26 +7,25 @@ public class RunnerTest {
 
     @Test
     public void main() {
-        String message = "Неверное количество передаваемых параметров. \n" +
-                "Ознакомьтесь c README.";
+        String message = "Неверное количество передаваемых параметров. Ознакомьтесь c README.";
         try {
             Runner.main(new String[]{"", "", "", ""});
-        }catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             Assert.assertEquals(message, e.getMessage());
         }
         try {
             Runner.main(new String[]{"", ""});
-        }catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             Assert.assertEquals(message, e.getMessage());
         }
         try {
             Runner.main(new String[]{""});
-        }catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             Assert.assertEquals(message, e.getMessage());
         }
         try {
             Runner.main(new String[]{});
-        }catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             Assert.assertEquals(message, e.getMessage());
         }
     }
