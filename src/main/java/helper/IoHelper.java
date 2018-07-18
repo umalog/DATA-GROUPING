@@ -2,37 +2,26 @@ package helper;
 
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
+import java.io.*;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class IoHelper {
     private static final Logger LOGGER = Logger.getLogger(IoHelper.class);
 
-    /**
-     * @param path куда писать.
-     * @param data что писать.
-     */
-    public static void writeData(String path, String data) {
+    public static void deleteData(String path) {
         try {
-            Files.write(Paths.get(path), data.getBytes());
+            if (Files.deleteIfExists(Paths.get(path))) {
+                LOGGER.info("Файл " + path + " будет перезаписан");
+            }
         } catch (IOException e) {
-            LOGGER.error("Неудачная попытка создания файла: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * @param fileName путь до файла.
-     * @return массив строк из файла.
-     */
-    public static String[] readFile(String fileName) {
-        try {
-            String allLines = new String(Files.readAllBytes(Paths.get(fileName)));
-            return allLines.split(System.lineSeparator());
-        } catch (IOException e) {
-            LOGGER.error("Неудачная попытка чтения файла: " + e.getMessage());
+            LOGGER.error("Неудачная попытка удаления уже существующего файла " + path);
             throw new RuntimeException(e);
         }
     }
